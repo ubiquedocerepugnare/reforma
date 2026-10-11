@@ -1,0 +1,16 @@
+{
+  "name": "Reforma",
+  "short_name": "Reforma",
+  "lang": "pt-PT",
+  "start_url": "./reforma.html",
+  "scope": "./reforma.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f2a3d",
+  "theme_color": "#0f2a3d",
+  "icons": [
+    { "src": "reforma-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "reforma-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "reforma-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
