@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reforma</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Reforma">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f2a3d">
+<style>
+  :root {
+    --fundo1: #0f2a3d;
+    --fundo2: #1d5c63;
+    --texto: #f4f1e8;
+    --suave: rgba(244, 241, 232, .7);
+    --destaque: #ffc857;
+    --cartao: rgba(255, 255, 255, .09);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--texto);
+    background: linear-gradient(160deg, var(--fundo1), var(--fundo2)) fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  main { width: 100%; max-width: 420px; }
+  .etiqueta {
+    font-size: .85rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--suave);
+  }
+  .dias {
+    font-size: clamp(5.5rem, 34vw, 10rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--destaque);
+    margin: 10px 0 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .unidade { font-size: 1.4rem; font-weight: 600; }
+  .detalhe { margin-top: 14px; font-size: 1.05rem; color: var(--suave); }
+  .cartoes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 30px;
+  }
+  .cartao {
+    background: var(--cartao);
+    border-radius: 16px;
+    padding: 14px 6px;
+  }
+  .cartao b {
+    display: block;
+    font-size: 1.6rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .cartao span { font-size: .75rem; color: var(--suave); }
+  .data { margin-top: 30px; font-size: .9rem; color: var(--suave); }
+</style>
+</head>
+<body>
+<main>
+  <p class="etiqueta" id="etiqueta">Faltam</p>
+  <p class="dias" id="dias">–</p>
+  <p class="unidade" id="unidade">dias para a reforma</p>
+  <p class="detalhe" id="detalhe"></p>
+
+  <div class="cartoes" id="cartoes">
+    <div class="cartao"><b id="semanas">–</b><span>semanas</span></div>
+    <div class="cartao"><b id="segundas">–</b><span>segundas-feiras</span></div>
+    <div class="cartao"><b id="fds">–</b><span>fins de semana</span></div>
+  </div>
+
+  <p class="data" id="data"></p>
+</main>
+
+<script>
+  // ====== DATA DA REFORMA (ano, mês, dia) — muda aqui se for preciso ======
+  var ANO = 2029, MES = 4, DIA = 23;
+  // =========================================================================
+
+  var MS_DIA = 86400000;
+
+  function plural(n, singular, pluralTxt) {
+    return n + " " + (n === 1 ? singular : pluralTxt);
+  }
+
+  function juntar(partes) {
+    if (partes.length <= 1) return partes.join("");
+    return partes.slice(0, -1).join(", ") + " e " + partes[partes.length - 1];
+  }
+
+  function atualizar() {
+    var agora = new Date();
+    var hojeUTC = Date.UTC(agora.getFullYear(), agora.getMonth(), agora.getDate());
+    var alvoUTC = Date.UTC(ANO, MES - 1, DIA);
+    var dias = Math.round((alvoUTC - hojeUTC) / MS_DIA);
+
+    var alvo = new Date(ANO, MES - 1, DIA);
+    document.getElementById("data").textContent = "Reforma: " +
+      alvo.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+    if (dias <= 0) {
+      document.getElementById("etiqueta").textContent = dias === 0 ? "É hoje!" : "Reformado há";
+      document.getElementById("dias").textContent = dias === 0 ? "🎉" : -dias;
+      document.getElementById("unidade").textContent = dias === 0 ? "Boa reforma, Francisco!" : (dias === -1 ? "dia" : "dias") + " 🎉";
+      document.getElementById("detalhe").textContent = "";
+      document.getElementById("cartoes").style.display = "none";
+      return;
+    }
+
+    document.getElementById("dias").textContent = dias;
+    document.getElementById("unidade").textContent = (dias === 1 ? "dia" : "dias") + " para a reforma";
+
+    // Anos, meses e dias de calendário
+    var a = ANO - agora.getFullYear();
+    var m = (MES - 1) - agora.getMonth();
+    var d = DIA - agora.getDate();
+    if (d < 0) { m--; d += new Date(ANO, MES - 1, 0).getDate(); }
+    if (m < 0) { a--; m += 12; }
+    var partes = [];
+    if (a > 0) partes.push(plural(a, "ano", "anos"));
+    if (m > 0) partes.push(plural(m, "mês", "meses"));
+    if (d > 0) partes.push(plural(d, "dia", "dias"));
+    document.getElementById("detalhe").textContent = juntar(partes);
+
+    // Semanas, segundas-feiras e fins de semana (sábados) de hoje até à véspera da reforma
+    var segundas = 0, sabados = 0;
+    var diaSemana = agora.getDay();
+    for (var i = 0; i < dias; i++) {
+      var ds = (diaSemana + i) % 7;
+      if (ds === 1) segundas++;
+      if (ds === 6) sabados++;
+    }
+    document.getElementById("semanas").textContent = Math.floor(dias / 7);
+    document.getElementById("segundas").textContent = segundas;
+    document.getElementById("fds").textContent = sabados;
+  }
+
+  // Ícone para o ecrã principal (desenhado aqui para manter tudo num só ficheiro)
+  function criarIcone() {
+    try {
+      var c = document.createElement("canvas");
+      c.width = c.height = 180;
+      var x = c.getContext("2d");
+      var g = x.createLinearGradient(0, 0, 180, 180);
+      g.addColorStop(0, "#0f2a3d");
+      g.addColorStop(1, "#1d5c63");
+      x.fillStyle = g;
+      x.fillRect(0, 0, 180, 180);
+      x.fillStyle = "#ffc857";
+      x.font = "bold 110px sans-serif";
+      x.textAlign = "center";
+      x.textBaseline = "middle";
+      x.fillText("R", 90, 98);
+      var url = c.toDataURL("image/png");
+      ["apple-touch-icon", "icon"].forEach(function (rel) {
+        var l = document.createElement("link");
+        l.rel = rel;
+        l.href = url;
+        document.head.appendChild(l);
+      });
+    } catch (e) {}
+  }
+
+  criarIcone();
+  atualizar();
+  setInterval(atualizar, 60000);
+  document.addEventListener("visibilitychange", atualizar);
+</script>
+</body>
+</html>
