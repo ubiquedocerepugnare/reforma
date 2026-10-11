@@ -9,6 +9,9 @@
 <meta name="apple-mobile-web-app-title" content="Reforma">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0f2a3d">
+<link rel="manifest" href="reforma.webmanifest">
+<link rel="icon" href="reforma-192.png">
+<link rel="apple-touch-icon" href="reforma-192.png">
 <style>
   :root {
     --fundo1: #0f2a3d;
@@ -146,33 +149,11 @@
     document.getElementById("fds").textContent = sabados;
   }
 
-  // Ícone para o ecrã principal (desenhado aqui para manter tudo num só ficheiro)
-  function criarIcone() {
-    try {
-      var c = document.createElement("canvas");
-      c.width = c.height = 180;
-      var x = c.getContext("2d");
-      var g = x.createLinearGradient(0, 0, 180, 180);
-      g.addColorStop(0, "#0f2a3d");
-      g.addColorStop(1, "#1d5c63");
-      x.fillStyle = g;
-      x.fillRect(0, 0, 180, 180);
-      x.fillStyle = "#ffc857";
-      x.font = "bold 110px sans-serif";
-      x.textAlign = "center";
-      x.textBaseline = "middle";
-      x.fillText("R", 90, 98);
-      var url = c.toDataURL("image/png");
-      ["apple-touch-icon", "icon"].forEach(function (rel) {
-        var l = document.createElement("link");
-        l.rel = rel;
-        l.href = url;
-        document.head.appendChild(l);
-      });
-    } catch (e) {}
+  // Funcionar sem internet (o âmbito "./reforma" limita-o a esta página)
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("reforma-sw.js", { scope: "./reforma" }).catch(function () {});
   }
 
-  criarIcone();
   atualizar();
   setInterval(atualizar, 60000);
   document.addEventListener("visibilitychange", atualizar);
